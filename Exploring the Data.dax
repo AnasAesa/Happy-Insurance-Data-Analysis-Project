@@ -1,0 +1,233 @@
+﻿---------------------------------------- Dax Queries: Exploring the Data (Happy Insurance) ----------------------------------------
+
+
+------------------------------------------------------------ Products -------------------------------------------------------------
+
+
+EVALUATE
+Products
+
+
+------ Total Revenue & Units Sold  by 'Line of Business'
+EVALUATE
+SUMMARIZE (
+    Sales,
+    Products[Line of Business],
+    "Revenue", ROUND ( [Total Revenue], 0 ),
+    "Revenue %",
+        ROUND (
+            DIVIDE ( [Total Revenue], CALCULATE ( [Total Revenue], ALL ( Sales ) ) ),
+            2
+        ),
+    "Units Sold", [Product Quantity],
+    "Units Sold %",
+        ROUND (
+            DIVIDE ( [Product Quantity], CALCULATE ( [Product Quantity], ALL ( Sales ) ) ),
+            2
+        ),
+    "Average Price", [Average Price]
+)
+ORDER BY [Revenue] DESC
+
+-- ** Life Insurance is 64% of the Total Revenue, 55% of Units Sold
+
+
+------ Revenue per Year by 'Line of Business' 
+EVALUATE
+SUMMARIZE (
+    Sales,
+    Products[Line of Business],
+    "Revenue in 2011 %",
+        ROUND (
+            DIVIDE ( [Revenue in 2011], CALCULATE ( [Revenue in 2011], ALL ( Sales ) ) ),
+            2
+        ),
+    "Revenue in 2012 %",
+        ROUND (
+            DIVIDE ( [Revenue in 2012], CALCULATE ( [Revenue in 2012], ALL ( Sales ) ) ),
+            2
+        ),
+    "Revenue in 2013 %",
+        ROUND (
+            DIVIDE ( [Revenue in 2013], CALCULATE ( [Revenue in 2013], ALL ( Sales ) ) ),
+            2
+        )
+)
+ORDER BY [Revenue in 2011] DESC
+
+-- ** Health insurance percentage increased from 23% to 28% in 2013
+
+
+------ Average Unit Price per Year - By Line of Business
+DEFINE
+    MEASURE Sales[AvgUnitPrice2011] =
+        ROUND (
+            AVERAGEX ( FILTER ( Sales, RELATED ( 'Date'[Year] ) = 2013 ), [Average Price] ),
+            0
+        )
+    MEASURE Sales[AvgUnitPrice2012] =
+        ROUND (
+            AVERAGEX ( FILTER ( Sales, RELATED ( 'Date'[Year] ) = 2012 ), [Average Price] ),
+            0
+        )
+    MEASURE Sales[AvgUnitPrice2013] =
+        ROUND (
+            AVERAGEX ( FILTER ( Sales, RELATED ( 'Date'[Year] ) = 2013 ), [Average Price] ),
+            0
+        )
+
+EVALUATE
+SUMMARIZE (
+    Sales,
+    Products[Line of Business],
+    "AvgUnitPrice2011", [AvgUnitPrice2011],
+    "AvgUnitPrice2012", [AvgUnitPrice2012],
+    "AvgUnitPrice2013", [AvgUnitPrice2013]
+)
+
+
+
+------ Total Revenue & Units Sold by 'Product Type'
+EVALUATE
+SUMMARIZE (
+    Sales,
+    Products[Product Type],
+    "Revenue", ROUND ( [Total Revenue], 0 ),
+    "Revenue %",
+        ROUND (
+            DIVIDE ( [Total Revenue], CALCULATE ( [Total Revenue], ALL ( Sales ) ) ),
+            2
+        ),
+    "Units Sold", [Product Quantity],
+    "Units Sold %",
+        ROUND (
+            DIVIDE ( [Product Quantity], CALCULATE ( [Product Quantity], ALL ( Sales ) ) ),
+            2
+        ),
+    "Average Price", [Average Price]
+)
+ORDER BY [Revenue] DESC
+
+-- ** Premium is 51% of the Total Revenue, 56% of Units Sold
+
+
+
+------ Top 5 Products per Year 
+
+EVALUATE
+TOPN (
+    5,
+    SUMMARIZE (
+        Sales,
+        Products[Product Name],
+        Products[Line of Business],
+        "Revenue 2011", ROUND ( CALCULATE ( [Total Revenue], 'Date'[Year] = 2011 ), 0 ),
+        "Revenue 2012", ROUND ( CALCULATE ( [Total Revenue], 'Date'[Year] = 2012 ), 0 ),
+        "Revenue 2013", ROUND ( CALCULATE ( [Total Revenue], 'Date'[Year] = 2013 ), 0 )
+    ),
+    [Revenue 2011], DESC
+)
+ORDER BY [Revenue 2011] DESC
+
+--'Economic' product went from 32K in 2011 to 55K in 2013    
+    
+
+
+------------------------------------------------------------ Customers -------------------------------------------------------------
+
+EVALUATE Customers
+
+
+------ Top 10 Customers By Revenue 
+EVALUATE
+TOPN (
+    10,
+    ADDCOLUMNS (
+        SELECTCOLUMNS (
+            Customers,
+            "Customer Name", Customers[Customer Name],
+            "Customer Type", Customers[Customer Type]
+        ),
+        "Revenue", 'M_Table'[Total Revenue],
+        "Units Sold", 'M_Table'[Product Quantity]
+    ),
+    [Revenue], DESC
+)
+ORDER BY [Revenue] DESC
+
+
+
+------ Total Orders, Products, and Revenue by GEO Region
+EVALUATE
+SUMMARIZE (
+    Sales,
+    'Customers'[Region],
+    "Orders %",
+        ROUND (
+            DIVIDE ( [Total Orders], CALCULATE ( [Total Orders], ALL ( Sales ) ) ),
+            2
+        ),
+    "Units Sold %",
+        ROUND (
+            DIVIDE ( [Product Quantity], CALCULATE ( [Product Quantity], ALL ( Sales ) ) ),
+            2
+        ),
+    "Revenue %",
+        ROUND (
+            DIVIDE ( [Total Revenue], CALCULATE ( [Total Revenue], ALL ( Sales ) ) ),
+            2
+        )
+)
+ORDER BY [Revenue %] DESC
+
+-- ** only 7% of the orders are to Americas
+
+
+
+------ Units Sold by Countries in 2013
+EVALUATE
+SUMMARIZE (
+    FILTER ( Sales, RELATED ( 'Date'[Year] ) = 2013 ),
+    'Customers'[Country],
+    "Products Sold in 2013", [Product Quantity]
+)
+ORDER BY [Products Sold in 2013] DESC
+
+
+
+------ Revenue & Active Customers in Israel - By Customer Type
+DEFINE
+    MEASURE Sales[Revenue in Israel] =
+        CALCULATE ( [Total Revenue], Customers[Country] = "Israel" )
+
+EVALUATE
+SUMMARIZE (
+    Sales,
+    Customers[Customer Type],
+    "Revenue in Israel",
+        DIVIDE (
+            Sales[Revenue in Israel],
+            CALCULATE ( Sales[Revenue in Israel], ALL ( Sales ) )
+        ),
+    "Active Customers", [Number of Customers]
+)
+
+--88% of the Revenue from Distributors
+
+
+DEFINE
+    MEASURE Sales[Revenue in Israel] =
+        CALCULATE ( [Total Revenue], Customers[Country] = "Israel" )
+
+EVALUATE
+SUMMARIZE (
+    Sales,
+    Customers[Customer Type],
+    "Revenue in Israel",
+        DIVIDE (
+            Sales[Revenue in Israel],
+            CALCULATE ( Sales[Revenue in Israel], ALL ( Sales ) )
+        ),
+    "Active Customers", [Number of Customers]
+)
+
