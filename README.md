@@ -16,7 +16,10 @@ This project demonstrates a full data lifecycle analysis for Happy Insurance, an
 ### 1. ETL & Star Schema Modeling (Power Query)
 * **Extraction**: Loaded raw insurance data into Excel using Power Query.
 
-* **Data Cleaning**: Standardized data formats and handled missing values for insurance products and customer records.
+* **Data Cleaning**: Standardized data formats and handled missing values for insurance products and customer records with M-Language.
+
+   <img width="1688" height="917" alt="M-Language" src="https://github.com/user-attachments/assets/9985b236-ed36-46e1-846a-1e0d0450245a" />
+
   
 * **Modeling**: Designed a Star Schema with a central Fact table (Sales) and related Dimension tables (Products, Customers, and a custom Dim_Date)
   
